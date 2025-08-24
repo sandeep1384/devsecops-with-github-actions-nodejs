@@ -20,7 +20,7 @@ jobs:
       with:
         args: >
           -Dsonar.organization=sandeep1384
-          -Dsonar.projectKey=devsecops-with-github-actions-nodejs
+          -Dsonar.projectKey=sandeep1384_devsecops-with-github-actions-nodejs
   security:
     runs-on: ubuntu-latest
     needs: build
