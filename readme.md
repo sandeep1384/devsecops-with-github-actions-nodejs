@@ -1,57 +1,120 @@
-# Unit Testing in Node.js
+🚀 DevSecOps Pipeline for Node.js Application
 
-[![CI Build Status](https://api.travis-ci.org/Lissy93/quick-example-of-testing-in-nodejs.svg)](https://api.travis-ci.org/Lissy93/quick-example-of-testing-in-nodejs.svg)
-[![Code Quality Grade](https://api.codacy.com/project/badge/Grade/6b793dc0759b4b22a73f4d7eae0d6983)](https://www.codacy.com/app/lissy93/quick-example-of-testing-in-nodejs?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Lissy93/quick-example-of-testing-in-nodejs&amp;utm_campaign=Badge_Grade)
-[![Dependency Status](https://david-dm.org/lissy93/quick-example-of-testing-in-nodejs.svg)](https://david-dm.org/lissy93/quick-example-of-testing-in-nodejs)
-[![devDependency Status](https://david-dm.org/lissy93/quick-example-of-testing-in-nodejs/dev-status.svg)](https://david-dm.org/lissy93/quick-example-of-testing-in-nodejs#info=devDependencies)
-[![Inline docs](http://inch-ci.org/github/Lissy93/quick-example-of-testing-in-nodejs.svg?branch=master)](http://inch-ci.org/github/Lissy93/quick-example-of-testing-in-nodejs)
+This repository demonstrates a DevSecOps implementation using GitHub Actions with:
 
+SonarQube → Code quality & security analysis
 
-## Intro
-This is a quick example project to show how a test environment can be setup in Node.js
+Snyk → Open-source dependency vulnerability scanning
 
-It includes the following
+OWASP ZAP → Dynamic Application Security Testing (DAST)
 
-- [Mocha](http://mochajs.org/) - *testing framework*
-- [Chai](http://chaijs.com/) - *assertion library*
-- [Istanbul](https://github.com/gotwarlost/istanbul) - *coverage testing*
-- [SinonJs](http://sinonjs.org/) - *stubs and splices for mocking data*
+GitHub Issues Integration → Automatic vulnerability reporting and job failure handling
 
+📌 Pipeline Overview
 
-The following online tools are used to monitor results
+The pipeline is designed to shift security left and integrate it seamlessly into the CI/CD process.
 
-- [Travis CI](https://travis-ci.org/) - *Continuous Integration*
-- [David DM](https://david-dm.org/) - *Dependency Management*
-- [Codacy](https://www.codacy.com/) - *Automated Code Quality Reviews*
-- [Inch CI](https://inch-ci.org/) - *Documentation Reviews*
+🔹 Workflow Steps:
 
+Checkout Code – Pulls source code from the repository.
 
-## The Project
-The project is a very simple script that pulls current weather data from OpenWeatherMap
-for your location, it then analyses it and lists which items (umbrella, icecream, jumper...)
-you will need for the current weather.
+Build & Test – Installs dependencies and runs Node.js tests.
 
-## To Install
-- Navigate into your working directory, run the following commands:
-- ```git clone https://github.com/Lissy93/quick-example-of-testing-in-nodejs.git``` to clone repo
-- ```cd quick-example-of-testing-in-nodejs``` to navigate into project
-- ```npm install``` to install the dependencies
+SonarQube Scan – Analyzes code for quality, bugs, and vulnerabilities.
 
-## To run the project
-- ```npm start``` will run the main file (app.js) and display results
-- ```node app --location Newcastle``` will run app.js for a custom location, e.g. Newcastle
-- ```npm test``` will run the Mocha tests, output results and generate reports
-- ```npm run cover``` will run the Istanbul coverage tests and output results and generate reports
+Snyk Scan – Detects security issues in dependencies.
 
-## Screenshots
+OWASP ZAP Scan – Performs DAST on running application.
 
-Command Line Output: Tests Passing
+Fail on Vulnerabilities – If issues are found, the job fails.
 
-<p align="center"><img src="https://i.ibb.co/WDpBStz/better-test3.png" /></p>
+GitHub Issues Automation – A detailed report is automatically created in GitHub Issues for tracking and remediation.
 
-Web Report: Some Tests Failing
-<p align="center"><img src="https://i.ibb.co/93CdGjG/bad-test1.png" /></p>
+⚡ Architecture Diagram
 
-Web Report: All Tests Passing
-<p align="center"><img src="https://i.ibb.co/nCdHFs4/better-test2.png" /></p>
+<img width="1536" height="1024" alt="pipeline" src="https://github.com/user-attachments/assets/0a549e68-45a2-4a1b-8202-38087d184f62" />
 
+🛠️ GitHub Actions Workflow (action.yml)
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        with:
+          args: >
+            -Dsonar.projectKey=my-nodejs-app
+            -Dsonar.organization=my-org
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Snyk Scan
+        uses: snyk/actions/node@master
+        with:
+          command: test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-baseline@v0.6.1
+        with:
+          target: 'http://localhost:3000'
+        continue-on-error: true
+
+      - name: Create GitHub Issue if vulnerabilities found
+        if: failure()
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "Security Vulnerability Detected"
+          content-filepath: ./zap_report.md
+          labels: security, automated-report
+
+🔐 Secrets Configuration
+
+Before running the workflow, configure the following repository secrets in GitHub:
+
+SONAR_TOKEN – Authentication token for SonarQube
+
+SONAR_HOST_URL – SonarQube server URL
+
+SNYK_TOKEN – Authentication token for Snyk
+
+✅ Key Benefits
+
+Automated code quality & security enforcement
+
+Immediate feedback to developers via pipeline job failure
+
+Seamless GitHub Issues tracking for vulnerabilities
+
+Scalable and repeatable DevSecOps workflow
+
+📢 Contributions
+
+Feel free to fork this repo, raise PRs, or suggest improvements. Security is a journey – let’s build better pipelines together!
+
+🔥 With this, you now have a production-ready DevSecOps pipeline that you can showcase directly in your GitHub repo.
